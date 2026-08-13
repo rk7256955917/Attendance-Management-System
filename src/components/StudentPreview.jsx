@@ -1,6 +1,6 @@
-const StudentPreview = ({ student }) => {
+const StudentPreview = ({ student = {} }) => {
   return (
-    <div className="border border-slate-200 rounded-lg p-4 min-h-[320px] w-full mt-22">
+ <div className="border border-slate-200 rounded-lg p-4 min-h-[310px] w-[330px] mt-25">
 
       <h3 className="text-center text-sm font-medium mb-4">
         Preview

@@ -1,8 +1,9 @@
 import { useState } from "react";
+
 import StudentForm from "./StudentForm";
 import StudentPreview from "./StudentPreview";
 
-const AddStudent = () => {
+const AddStudent = ({ onAddStudent }) => {
 
   const [student, setStudent] = useState({
     name: "",
@@ -13,22 +14,25 @@ const AddStudent = () => {
     photo: "",
   });
 
-  const handleStudentSubmit = (data) => {
-    setStudent(data);
+
+  // Form se data receive hoga
+  const handleFormSubmit = (formData) => {
+
+    setStudent(formData);
+
+    // App.jsx ko student bhejna
+    onAddStudent(formData);
   };
 
+
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
       {/* Form */}
-      <div className="w-full lg:flex-1">
-        <StudentForm onSubmit={handleStudentSubmit} />
-      </div>
+      <StudentForm onSubmit={handleFormSubmit} />
 
       {/* Preview */}
-      <div className="w-full lg:w-[320px]">
-        <StudentPreview student={student} />
-      </div>
+      <StudentPreview student={student} />
 
     </div>
   );

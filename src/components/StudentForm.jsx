@@ -3,26 +3,35 @@ const StudentForm = ({ onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const photoFile = e.target.photo.files[0];
+
     const formData = {
       name: e.target.name.value,
       rollNo: e.target.rollNo.value,
       email: e.target.email.value,
       course: e.target.course.value,
       semester: e.target.semester.value,
-      photo: "",
+
+      photo: photoFile
+        ? URL.createObjectURL(photoFile)
+        : "",
     };
 
     onSubmit(formData);
   };
 
-  return (
-    <div className="w-full">
 
-      <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-5">
+  return (
+    <div>
+
+      <h2 className="text-2xl font-bold text-slate-900 mb-5">
         Add New Student
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-3"
+      >
 
         {/* Full Name */}
         <div>
@@ -38,6 +47,7 @@ const StudentForm = ({ onSubmit }) => {
           />
         </div>
 
+
         {/* Roll Number */}
         <div>
           <label className="block text-sm font-medium mb-1">
@@ -52,6 +62,7 @@ const StudentForm = ({ onSubmit }) => {
           />
         </div>
 
+
         {/* Email */}
         <div>
           <label className="block text-sm font-medium mb-1">
@@ -65,6 +76,7 @@ const StudentForm = ({ onSubmit }) => {
             className="w-full border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
 
         {/* Course */}
         <div>
@@ -83,6 +95,7 @@ const StudentForm = ({ onSubmit }) => {
             <option value="MCA">MCA</option>
           </select>
         </div>
+
 
         {/* Semester */}
         <div>
@@ -106,6 +119,7 @@ const StudentForm = ({ onSubmit }) => {
           </select>
         </div>
 
+
         {/* Profile Photo */}
         <div>
           <label className="block text-sm font-medium mb-1">
@@ -114,20 +128,23 @@ const StudentForm = ({ onSubmit }) => {
 
           <input
             type="file"
+            name="photo"
             accept="image/*"
-            className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-sm"
+            className="w-full border border-slate-200 rounded-lg px-3 py-1.5"
           />
         </div>
+
 
         {/* Button */}
         <button
           type="submit"
-          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg"
         >
           Add Student
         </button>
 
       </form>
+
     </div>
   );
 };
