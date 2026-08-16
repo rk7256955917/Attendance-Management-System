@@ -38,6 +38,7 @@ const StudentForm = ({ onSubmit }) => {
 
   } catch (error) {
     console.log("Error:", error.message);
+    alert(error.message);
   }
 };
 

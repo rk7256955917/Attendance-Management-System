@@ -1,3 +1,4 @@
+const attendanceRoutes = require("./routes/attendanceRoutes");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -24,6 +25,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Student routes
 app.use("/api/students", studentRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 // Test route
 app.get("/", (req, res) => {

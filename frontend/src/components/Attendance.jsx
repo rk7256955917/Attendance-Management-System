@@ -16,15 +16,52 @@ const Attendance = ({ students }) => {
 
 
   // Submit button
-  const handleSubmit = () => {
+ const handleSubmit = async () => {
+  try {
+    if (!selectedDate) {
+      alert("Please select date");
+      return;
+    }
 
-    const attendanceData = {
-      date: selectedDate,
-      attendance: attendance,
-    };
+    for (const student of students) {
+      const status = attendance[student.rollNo];
 
-    console.log(attendanceData);
-  };
+      // Agar kisi student ki attendance mark nahi hui
+      if (!status) {
+        continue;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/attendance",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            date: selectedDate,
+            student: student._id,
+            status: status,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Attendance save nahi hui");
+      }
+
+      console.log("Attendance saved:", data);
+    }
+
+    alert("Attendance successfully saved!");
+
+  } catch (error) {
+    console.log("Attendance Error:", error.message);
+    alert("Attendance save nahi hui");
+  }
+};
 
 
   return (

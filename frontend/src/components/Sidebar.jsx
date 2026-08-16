@@ -15,16 +15,24 @@ const Sidebar = ({ onNavigate, activePage }) => {
 
       {/* Logo */}
       <div className="mb-8 flex items-center gap-3">
-        <UsersRound size={32} className="text-blue-400" />
+
+        <UsersRound
+          size={32}
+          className="text-blue-400"
+        />
 
         <div>
-          <h2 className="text-xl font-bold">AMS</h2>
+          <h2 className="text-xl font-bold">
+            AMS
+          </h2>
 
           <p className="text-sm text-slate-300">
             Attendance System
           </p>
         </div>
+
       </div>
+
 
       {/* Menu */}
       <nav className="space-y-2">
@@ -42,6 +50,7 @@ const Sidebar = ({ onNavigate, activePage }) => {
           Dashboard
         </button>
 
+
         {/* Add Student */}
         <button
           onClick={() => onNavigate("addStudent")}
@@ -54,6 +63,21 @@ const Sidebar = ({ onNavigate, activePage }) => {
           <UserPlus size={18} />
           Add Student
         </button>
+
+
+        {/* Student Management */}
+        <button
+          onClick={() => onNavigate("students")}
+          className={`w-full flex items-center gap-3 text-left px-3 py-2 rounded-lg ${
+            activePage === "students"
+              ? "bg-blue-600"
+              : "hover:bg-blue-600"
+          }`}
+        >
+          <UsersRound size={18} />
+          Student Management
+        </button>
+
 
         {/* Mark Attendance */}
         <button
@@ -68,6 +92,7 @@ const Sidebar = ({ onNavigate, activePage }) => {
           Mark Attendance
         </button>
 
+
         {/* Attendance Records */}
         <button
           onClick={() => onNavigate("records")}
@@ -81,6 +106,7 @@ const Sidebar = ({ onNavigate, activePage }) => {
           Attendance Records
         </button>
 
+
         {/* Reports */}
         <button
           onClick={() => onNavigate("reports")}
@@ -93,6 +119,7 @@ const Sidebar = ({ onNavigate, activePage }) => {
           <BarChart3 size={18} />
           Reports
         </button>
+
 
         {/* Settings */}
         <button
@@ -108,6 +135,7 @@ const Sidebar = ({ onNavigate, activePage }) => {
         </button>
 
       </nav>
+
 
       {/* Logout */}
       <button className="mt-auto w-full flex items-center gap-3 text-left px-3 py-2 rounded-lg hover:bg-red-600">
