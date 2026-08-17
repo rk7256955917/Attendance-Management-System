@@ -1,17 +1,53 @@
 const express = require("express");
 const Student = require("../models/Student");
 const Attendance = require("../models/Attendance");
+const multer = require("multer");
+const path = require("path");
 
 const router = express.Router();
 
 
 // ===============================
+// Multer Setup
+// ===============================
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+
+  filename: (req, file, cb) => {
+    const uniqueName =
+      Date.now() + "-" + file.originalname;
+
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({ storage });
+
+
+// ===============================
 // POST - Add Student
 // ===============================
-router.post("/", async (req, res) => {
+
+router.post("/", upload.single("photo"), async (req, res) => {
   try {
 
-    const student = new Student(req.body);
+    const studentData = {
+      name: req.body.name,
+      rollNo: req.body.rollNo,
+      email: req.body.email,
+      course: req.body.course,
+      semester: Number(req.body.semester),
+
+      photo: req.file
+        ? `/uploads/${req.file.filename}`
+        : "",
+    };
+
+
+    const student = new Student(studentData);
 
     const savedStudent = await student.save();
 
@@ -37,6 +73,7 @@ router.post("/", async (req, res) => {
 // ===============================
 // GET - Get All Students
 // ===============================
+
 router.get("/", async (req, res) => {
   try {
 
@@ -57,12 +94,35 @@ router.get("/", async (req, res) => {
 // ===============================
 // PUT - Update Student
 // ===============================
-router.put("/:id", async (req, res) => {
+
+router.put("/:id", upload.single("photo"), async (req, res) => {
   try {
+
+    const updateData = {
+      name: req.body.name,
+      rollNo: req.body.rollNo,
+      email: req.body.email,
+      course: req.body.course,
+      semester: Number(req.body.semester),
+    };
+
+
+    // ===============================
+    // New Photo Upload
+    // ===============================
+
+    if (req.file) {
+      updateData.photo = `/uploads/${req.file.filename}`;
+    }
+
+
+    // ===============================
+    // Update Student
+    // ===============================
 
     const updatedStudent = await Student.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true,
@@ -78,6 +138,7 @@ router.put("/:id", async (req, res) => {
     }
 
 
+    // Updated student response
     res.status(200).json(updatedStudent);
 
   } catch (error) {
@@ -100,6 +161,7 @@ router.put("/:id", async (req, res) => {
 // ===============================
 // DELETE - Delete Student
 // ===============================
+
 router.delete("/:id", async (req, res) => {
   try {
 
@@ -109,7 +171,6 @@ router.delete("/:id", async (req, res) => {
     );
 
 
-    // Student nahi mila
     if (!deletedStudent) {
       return res.status(404).json({
         message: "Student nahi mila",
@@ -125,7 +186,9 @@ router.delete("/:id", async (req, res) => {
 
     // 3. Response
     res.status(200).json({
-      message: "Student aur uski attendance successfully delete ho gayi",
+      message:
+        "Student aur uski attendance successfully delete ho gayi",
+
       student: deletedStudent,
     });
 

@@ -1,46 +1,80 @@
 const StudentForm = ({ onSubmit }) => {
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const photoFile = e.target.photo.files[0];
+    const photoFile = e.target.photo.files[0];
 
-  const formData = {
-    name: e.target.name.value,
-    rollNo: e.target.rollNo.value,
-    email: e.target.email.value,
-    course: e.target.course.value,
-    semester: Number(e.target.semester.value),
-
-    photo: photoFile
+    // ===============================
+    // Preview ke liye temporary URL
+    // ===============================
+    const previewPhoto = photoFile
       ? URL.createObjectURL(photoFile)
-      : "",
-  };
+      : "";
 
-  try {
-    const response = await fetch("http://localhost:5000/api/students", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
+    // ===============================
+    // Backend FormData
+    // ===============================
+    const formData = new FormData();
 
-    const data = await response.json();
+    formData.append("name", e.target.name.value);
+    formData.append("rollNo", e.target.rollNo.value);
+    formData.append("email", e.target.email.value);
+    formData.append("course", e.target.course.value);
 
-    if (!response.ok) {
-      throw new Error(data.error || "Student add nahi hua");
+    formData.append(
+      "semester",
+      Number(e.target.semester.value)
+    );
+
+    if (photoFile) {
+      formData.append("photo", photoFile);
     }
 
-    console.log("Student added:", data);
+    try {
 
-    onSubmit(data);
+      const response = await fetch(
+        "http://localhost:5000/api/students",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-  } catch (error) {
-    console.log("Error:", error.message);
-    alert(error.message);
-  }
-};
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Student add nahi hua"
+        );
+      }
+
+      console.log("Student added:", data);
+
+      // ===============================
+      // PreviewCard ke liye
+      // ===============================
+      const studentData = {
+        ...data,
+        photo: previewPhoto || data.photo,
+      };
+
+      onSubmit(studentData);
+
+      // Form clear
+      e.target.reset();
+
+    } catch (error) {
+
+      console.log(
+        "Error:",
+        error.message
+      );
+
+      alert(error.message);
+    }
+  };
+
 
   return (
     <div>
@@ -64,6 +98,7 @@ const StudentForm = ({ onSubmit }) => {
             type="text"
             name="name"
             placeholder="Enter full name"
+            required
             className="w-full border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -79,6 +114,7 @@ const StudentForm = ({ onSubmit }) => {
             type="text"
             name="rollNo"
             placeholder="Enter roll number"
+            required
             className="w-full border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -94,6 +130,7 @@ const StudentForm = ({ onSubmit }) => {
             type="email"
             name="email"
             placeholder="Enter email address"
+            required
             className="w-full border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -107,13 +144,28 @@ const StudentForm = ({ onSubmit }) => {
 
           <select
             name="course"
+            required
             className="w-full border border-slate-200 rounded-lg px-3 py-1.5 outline-none"
           >
-            <option value="">Select course</option>
-            <option value="B.Tech CSE">B.Tech CSE</option>
-            <option value="B.Tech IT">B.Tech IT</option>
-            <option value="BCA">BCA</option>
-            <option value="MCA">MCA</option>
+            <option value="">
+              Select course
+            </option>
+
+            <option value="B.Tech CSE">
+              B.Tech CSE
+            </option>
+
+            <option value="B.Tech IT">
+              B.Tech IT
+            </option>
+
+            <option value="BCA">
+              BCA
+            </option>
+
+            <option value="MCA">
+              MCA
+            </option>
           </select>
         </div>
 
@@ -126,9 +178,13 @@ const StudentForm = ({ onSubmit }) => {
 
           <select
             name="semester"
+            required
             className="w-full border border-slate-200 rounded-lg px-3 py-1.5 outline-none"
           >
-            <option value="">Select semester</option>
+            <option value="">
+              Select semester
+            </option>
+
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
