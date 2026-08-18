@@ -24,6 +24,17 @@ const attendanceSchema = new mongoose.Schema(
   }
 );
 
-const Attendance = mongoose.model("Attendance", attendanceSchema);
+
+// Same student + same date = only one attendance
+attendanceSchema.index(
+  { student: 1, date: 1 },
+  { unique: true }
+);
+
+
+const Attendance = mongoose.model(
+  "Attendance",
+  attendanceSchema
+);
 
 module.exports = Attendance;

@@ -7,17 +7,23 @@ import Dashboard from "./components/Dashboard";
 import Reports from "./components/Reports";
 import Records from "./components/Records";
 import StudentManagement from "./components/StudentManagement";
+import StudentProfile from "./components/StudentProfile";
 
 function App() {
 
   // Saare students yahan store honge
   const [students, setStudents] = useState([]);
 
+  // Selected student ka profile
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
   // Kaunsa page show karna hai
   const [activePage, setActivePage] = useState("addStudent");
 
 
-  // MongoDB se students fetch
+  // ===============================
+  // GET - MongoDB se students fetch
+  // ===============================
   useEffect(() => {
 
     const fetchStudents = async () => {
@@ -29,6 +35,12 @@ function App() {
         );
 
         const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Students fetch nahi ho paye"
+          );
+        }
 
         setStudents(data);
 
@@ -48,7 +60,9 @@ function App() {
   }, []);
 
 
-  // AddStudent se student receive hoga
+  // ===============================
+  // ADD STUDENT
+  // ===============================
   const handleAddStudent = (student) => {
 
     setStudents((prevStudents) => [
@@ -59,23 +73,53 @@ function App() {
   };
 
 
+  // ===============================
+  // STUDENT PROFILE
+  // ===============================
+  const handleProfileClick = (student) => {
+
+    setSelectedStudent(student);
+
+    setActivePage("studentProfile");
+
+  };
+
+
+  // ===============================
+  // BACK TO STUDENT MANAGEMENT
+  // ===============================
+  const handleBackToStudents = () => {
+
+    setSelectedStudent(null);
+
+    setActivePage("students");
+
+  };
+
+
   return (
     <div className="h-screen flex flex-col">
 
       <div className="flex flex-1 min-h-0">
 
-        {/* Sidebar */}
+        {/* ===============================
+            Sidebar
+        =============================== */}
         <Sidebar
           onNavigate={setActivePage}
           activePage={activePage}
         />
 
 
-        {/* Main Content */}
+        {/* ===============================
+            Main Content
+        =============================== */}
         <main className="flex-1 p-4 overflow-auto">
 
 
-          {/* Add Student */}
+          {/* ===============================
+              Add Student
+          =============================== */}
           {activePage === "addStudent" && (
             <AddStudent
               onAddStudent={handleAddStudent}
@@ -83,19 +127,40 @@ function App() {
           )}
 
 
-          {/* Dashboard */}
+          {/* ===============================
+              Dashboard
+          =============================== */}
           {activePage === "dashboard" && (
             <Dashboard />
           )}
 
 
-          {/* Student Management */}
+          {/* ===============================
+              Student Management
+          =============================== */}
           {activePage === "students" && (
-            <StudentManagement />
+            <StudentManagement
+              onProfileClick={handleProfileClick}
+            />
           )}
 
 
-          {/* Attendance */}
+          {/* ===============================
+              Student Profile
+          =============================== */}
+          {activePage === "studentProfile" &&
+            selectedStudent && (
+              <StudentProfile
+                student={selectedStudent}
+                onBack={handleBackToStudents}
+              />
+            )
+          }
+
+
+          {/* ===============================
+              Attendance
+          =============================== */}
           {activePage === "attendance" && (
             <Attendance
               students={students}
@@ -103,19 +168,25 @@ function App() {
           )}
 
 
-          {/* Records */}
+          {/* ===============================
+              Records
+          =============================== */}
           {activePage === "records" && (
             <Records />
           )}
 
 
-          {/* Reports */}
+          {/* ===============================
+              Reports
+          =============================== */}
           {activePage === "reports" && (
             <Reports />
           )}
 
 
-          {/* Settings */}
+          {/* ===============================
+              Settings
+          =============================== */}
           {activePage === "settings" && (
             <h2 className="text-2xl font-bold">
               Settings
