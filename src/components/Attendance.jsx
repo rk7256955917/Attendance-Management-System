@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 
 const Attendance = ({ students }) => {
   // ===============================
+  // STUDENTS STATE
+  // ===============================
+
+  const [attendanceStudents, setAttendanceStudents] = useState(students || []);
+
+  // ===============================
   // FILTER STATES
   // ===============================
 
@@ -9,6 +15,13 @@ const Attendance = ({ students }) => {
   const [courseFilter, setCourseFilter] = useState("All");
   const [semesterFilter, setSemesterFilter] = useState("All");
   const [selectedDate, setSelectedDate] = useState("");
+
+  // ===============================
+  // PAGINATION STATES
+  // ===============================
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const studentsPerPage = 10;
 
   // ===============================
   // ATTENDANCE STATE
@@ -22,19 +35,57 @@ const Attendance = ({ students }) => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ===============================
+  // UPDATE LOCAL STUDENTS
+  // ===============================
+
+  useEffect(() => {
+    setAttendanceStudents(students || []);
+  }, [students]);
+
+  // ===============================
+  // FRESH STUDENTS FETCH
+  // ===============================
+
+  useEffect(() => {
+    const fetchLatestStudents = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:5000/api/students"
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.message || "Students fetch nahi ho paye"
+          );
+        }
+
+        setAttendanceStudents(data);
+      } catch (error) {
+        console.log(
+          "Latest Students Fetch Error:",
+          error.message
+        );
+      }
+    };
+
+    fetchLatestStudents();
+  }, []);
 
   // ===============================
   // FILTER STUDENTS
   // ===============================
 
-  const filteredStudents = students.filter((student) => {
-    const searchText = search.toLowerCase();
+  const filteredStudents = attendanceStudents.filter((student) => {
+    const searchText = search.toLowerCase().trim();
 
     const matchesSearch =
       student.name
         ?.toLowerCase()
         .includes(searchText) ||
-      student.rollNo
+      String(student.rollNo)
         ?.toLowerCase()
         .includes(searchText) ||
       student.email
@@ -56,6 +107,50 @@ const Attendance = ({ students }) => {
     );
   });
 
+  // ===============================
+  // PAGINATION
+  // ===============================
+
+  const totalPages = Math.ceil(
+    filteredStudents.length / studentsPerPage
+  );
+
+  const startIndex =
+    (currentPage - 1) * studentsPerPage;
+
+  const endIndex =
+    startIndex + studentsPerPage;
+
+  const paginatedStudents =
+    filteredStudents.slice(
+      startIndex,
+      endIndex
+    );
+
+  // ===============================
+  // FILTER CHANGE -> PAGE 1
+  // ===============================
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    search,
+    courseFilter,
+    semesterFilter,
+  ]);
+
+  // ===============================
+  // PAGE SAFETY
+  // ===============================
+
+  useEffect(() => {
+    if (
+      totalPages > 0 &&
+      currentPage > totalPages
+    ) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // ===============================
   // FETCH ATTENDANCE BY DATE
@@ -90,11 +185,11 @@ const Attendance = ({ students }) => {
               ? item.student._id
               : item.student;
 
-          attendanceMap[studentId] = item.status;
+          attendanceMap[studentId] =
+            item.status;
         });
 
         setAttendance(attendanceMap);
-
       } catch (error) {
         console.log(
           "Attendance Fetch Error:",
@@ -108,18 +203,26 @@ const Attendance = ({ students }) => {
     fetchAttendance();
   }, [selectedDate]);
 
-
   // ===============================
   // SELECT P / L / A
   // ===============================
 
-  const handleAttendance = (studentId, status) => {
+  const handleAttendance = (
+    studentId,
+    status
+  ) => {
+    if (!selectedDate) {
+      alert(
+        "Pehle attendance date select karo"
+      );
+      return;
+    }
+
     setAttendance((prev) => ({
       ...prev,
       [studentId]: status,
     }));
   };
-
 
   // ===============================
   // SUBMIT ATTENDANCE
@@ -136,10 +239,12 @@ const Attendance = ({ students }) => {
       return;
     }
 
-    // Check all filtered students marked
-    const unmarkedStudents = filteredStudents.filter(
-      (student) => !attendance[student._id]
-    );
+    // Current filtered students ko check karo
+    const unmarkedStudents =
+      filteredStudents.filter(
+        (student) =>
+          !attendance[student._id]
+      );
 
     if (unmarkedStudents.length > 0) {
       alert(
@@ -151,24 +256,31 @@ const Attendance = ({ students }) => {
     try {
       setIsSubmitting(true);
 
-      // Save / Update attendance
+      // ===============================
+      // SAVE / UPDATE ATTENDANCE
+      // ===============================
+
       for (const student of filteredStudents) {
         const response = await fetch(
           "http://localhost:5000/api/attendance",
           {
             method: "POST",
+
             headers: {
               "Content-Type": "application/json",
             },
+
             body: JSON.stringify({
               date: selectedDate,
               student: student._id,
-              status: attendance[student._id],
+              status:
+                attendance[student._id],
             }),
           }
         );
 
-        const data = await response.json();
+        const data =
+          await response.json();
 
         if (!response.ok) {
           throw new Error(
@@ -178,14 +290,20 @@ const Attendance = ({ students }) => {
         }
       }
 
-      alert("Attendance successfully submit ho gayi");
+      alert(
+        "Attendance successfully submit ho gayi"
+      );
 
-      // Latest attendance dobara fetch
+      // ===============================
+      // LATEST ATTENDANCE FETCH
+      // ===============================
+
       const response = await fetch(
         `http://localhost:5000/api/attendance/date/${selectedDate}`
       );
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (response.ok) {
         const attendanceMap = {};
@@ -196,12 +314,12 @@ const Attendance = ({ students }) => {
               ? item.student._id
               : item.student;
 
-          attendanceMap[studentId] = item.status;
+          attendanceMap[studentId] =
+            item.status;
         });
 
         setAttendance(attendanceMap);
       }
-
     } catch (error) {
       console.log(
         "Submit Attendance Error:",
@@ -209,12 +327,10 @@ const Attendance = ({ students }) => {
       );
 
       alert(error.message);
-
     } finally {
       setIsSubmitting(false);
     }
   };
-
 
   // ===============================
   // CLEAR FILTERS
@@ -225,8 +341,12 @@ const Attendance = ({ students }) => {
     setCourseFilter("All");
     setSemesterFilter("All");
     setSelectedDate("");
+    setCurrentPage(1);
   };
 
+  // ===============================
+  // RETURN
+  // ===============================
 
   return (
     <div className="bg-white rounded-xl p-3 md:p-5">
@@ -241,7 +361,6 @@ const Attendance = ({ students }) => {
         </h2>
       </div>
 
-
       {/* ===============================
           SEARCH + FILTER
       =============================== */}
@@ -254,7 +373,7 @@ const Attendance = ({ students }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {/* Search */}
+          {/* SEARCH */}
 
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -272,8 +391,7 @@ const Attendance = ({ students }) => {
             />
           </div>
 
-
-          {/* Course */}
+          {/* COURSE */}
 
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -309,8 +427,7 @@ const Attendance = ({ students }) => {
             </select>
           </div>
 
-
-          {/* Semester */}
+          {/* SEMESTER */}
 
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -362,8 +479,7 @@ const Attendance = ({ students }) => {
             </select>
           </div>
 
-
-          {/* Date */}
+          {/* DATE */}
 
           <div>
             <label className="block text-sm font-medium mb-1">
@@ -374,22 +490,29 @@ const Attendance = ({ students }) => {
               type="date"
               value={selectedDate}
               onChange={(e) =>
-                setSelectedDate(e.target.value)
+                setSelectedDate(
+                  e.target.value
+                )
               }
               className="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
         </div>
 
+        {/* FILTER BOTTOM */}
 
-        {/* Filter Bottom */}
-
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4">
 
           <p className="text-sm text-slate-500">
-            Showing {filteredStudents.length} of{" "}
-            {students.length} students
+            Showing{" "}
+            <span className="font-medium text-slate-700">
+              {filteredStudents.length}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium text-slate-700">
+              {attendanceStudents.length}
+            </span>{" "}
+            students
           </p>
 
           <button
@@ -399,11 +522,8 @@ const Attendance = ({ students }) => {
           >
             Clear Filters
           </button>
-
         </div>
-
       </div>
-
 
       {/* ===============================
           DATE + SUBMIT
@@ -414,16 +534,24 @@ const Attendance = ({ students }) => {
         <div>
           {selectedDate && (
             <p className="text-sm text-slate-500">
-              Attendance for: {selectedDate}
+              Attendance for:{" "}
+              <span className="font-medium text-slate-700">
+                {selectedDate}
+              </span>
             </p>
           )}
         </div>
 
         <button
+          type="button"
           onClick={handleSubmit}
-          disabled={!selectedDate || isSubmitting}
+          disabled={
+            !selectedDate ||
+            isSubmitting
+          }
           className={`px-5 py-2 rounded-lg text-white font-medium ${
-            !selectedDate || isSubmitting
+            !selectedDate ||
+            isSubmitting
               ? "bg-slate-300 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
@@ -432,9 +560,7 @@ const Attendance = ({ students }) => {
             ? "Submitting..."
             : "Submit Attendance"}
         </button>
-
       </div>
-
 
       {/* ===============================
           TABLE
@@ -474,14 +600,15 @@ const Attendance = ({ students }) => {
             </tr>
           </thead>
 
-
           <tbody>
 
-            {filteredStudents.map(
+            {paginatedStudents.map(
               (student, index) => {
 
                 const status =
-                  attendance[student._id];
+                  attendance[
+                    student._id
+                  ];
 
                 return (
                   <tr
@@ -489,14 +616,15 @@ const Attendance = ({ students }) => {
                     className="border-b"
                   >
 
-                    {/* Number */}
+                    {/* NUMBER */}
 
                     <td className="p-3">
-                      {index + 1}
+                      {startIndex +
+                        index +
+                        1}
                     </td>
 
-
-                    {/* Student */}
+                    {/* STUDENT */}
 
                     <td className="p-3">
 
@@ -507,7 +635,9 @@ const Attendance = ({ students }) => {
                           {student.photo ? (
                             <img
                               src={`http://localhost:5000${student.photo}`}
-                              alt={student.name}
+                              alt={
+                                student.name
+                              }
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -526,41 +656,37 @@ const Attendance = ({ students }) => {
 
                     </td>
 
-
-                    {/* Roll Number */}
+                    {/* ROLL NUMBER */}
 
                     <td className="p-3">
                       {student.rollNo}
                     </td>
 
-
-                    {/* Course */}
+                    {/* COURSE */}
 
                     <td className="p-3">
                       {student.course}
                     </td>
 
-
-                    {/* Semester */}
+                    {/* SEMESTER */}
 
                     <td className="p-3">
                       {student.semester}
                     </td>
 
-
-                    {/* Attendance Buttons */}
+                    {/* ATTENDANCE */}
 
                     <td className="p-3">
 
                       <div className="flex justify-center gap-2">
 
-                        {/* ===============================
-                            PRESENT
-                        =============================== */}
+                        {/* P */}
 
                         <button
                           type="button"
-                          disabled={!selectedDate}
+                          disabled={
+                            !selectedDate
+                          }
                           onClick={() =>
                             handleAttendance(
                               student._id,
@@ -580,14 +706,13 @@ const Attendance = ({ students }) => {
                           P
                         </button>
 
-
-                        {/* ===============================
-                            LATE
-                        =============================== */}
+                        {/* L */}
 
                         <button
                           type="button"
-                          disabled={!selectedDate}
+                          disabled={
+                            !selectedDate
+                          }
                           onClick={() =>
                             handleAttendance(
                               student._id,
@@ -607,14 +732,13 @@ const Attendance = ({ students }) => {
                           L
                         </button>
 
-
-                        {/* ===============================
-                            ABSENT
-                        =============================== */}
+                        {/* A */}
 
                         <button
                           type="button"
-                          disabled={!selectedDate}
+                          disabled={
+                            !selectedDate
+                          }
                           onClick={() =>
                             handleAttendance(
                               student._id,
@@ -643,10 +767,10 @@ const Attendance = ({ students }) => {
               }
             )}
 
+            {/* NO STUDENTS */}
 
-            {/* No Students */}
-
-            {filteredStudents.length === 0 && (
+            {paginatedStudents.length ===
+              0 && (
               <tr>
                 <td
                   colSpan="6"
@@ -658,10 +782,112 @@ const Attendance = ({ students }) => {
             )}
 
           </tbody>
-
         </table>
-
       </div>
+
+      {/* ===============================
+          PAGINATION
+      =============================== */}
+
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-5">
+
+          <p className="text-sm text-slate-500">
+            Page{" "}
+            <span className="font-medium text-slate-700">
+              {currentPage}
+            </span>{" "}
+            of{" "}
+            <span className="font-medium text-slate-700">
+              {totalPages}
+            </span>
+          </p>
+
+          <div className="flex items-center gap-2">
+
+            {/* PREVIOUS */}
+
+            <button
+              type="button"
+              disabled={
+                currentPage === 1
+              }
+              onClick={() =>
+                setCurrentPage(
+                  (prev) =>
+                    prev - 1
+                )
+              }
+              className={`px-4 py-2 rounded-lg border ${
+                currentPage === 1
+                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  : "bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Previous
+            </button>
+
+            {/* PAGE NUMBERS */}
+
+            <div className="flex items-center gap-1">
+
+              {Array.from(
+                { length: totalPages },
+                (_, index) => {
+                  const page =
+                    index + 1;
+
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() =>
+                        setCurrentPage(
+                          page
+                        )
+                      }
+                      className={`w-9 h-9 rounded-lg ${
+                        currentPage ===
+                        page
+                          ? "bg-blue-600 text-white"
+                          : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                }
+              )}
+
+            </div>
+
+            {/* NEXT */}
+
+            <button
+              type="button"
+              disabled={
+                currentPage ===
+                totalPages
+              }
+              onClick={() =>
+                setCurrentPage(
+                  (prev) =>
+                    prev + 1
+                )
+              }
+              className={`px-4 py-2 rounded-lg border ${
+                currentPage ===
+                totalPages
+                  ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  : "bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              Next
+            </button>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

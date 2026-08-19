@@ -12,14 +12,33 @@ router.post("/", async (req, res) => {
 
     const { date, student, status } = req.body;
 
-    // Basic validation
+
+    // ===============================
+    // Validation
+    // ===============================
+
     if (!date || !student || !status) {
       return res.status(400).json({
         message: "Date, student aur status required hain",
       });
     }
 
-    // Same student + same date ka attendance check
+
+    // ===============================
+    // Validate Status
+    // ===============================
+
+    if (!["P", "L", "A"].includes(status)) {
+      return res.status(400).json({
+        message: "Invalid attendance status",
+      });
+    }
+
+
+    // ===============================
+    // Date Range
+    // ===============================
+
     const selectedDate = new Date(date);
 
     const startDate = new Date(selectedDate);
@@ -28,6 +47,10 @@ router.post("/", async (req, res) => {
     const endDate = new Date(selectedDate);
     endDate.setHours(23, 59, 59, 999);
 
+
+    // ===============================
+    // Check Existing Attendance
+    // ===============================
 
     const existingAttendance = await Attendance.findOne({
       student,
@@ -38,13 +61,21 @@ router.post("/", async (req, res) => {
     });
 
 
-    // Agar attendance already hai
+    // ===============================
+    // UPDATE
+    // ===============================
+
     if (existingAttendance) {
 
       existingAttendance.status = status;
 
       const updatedAttendance =
         await existingAttendance.save();
+
+      // Student information populate
+      await updatedAttendance.populate(
+        "student"
+      );
 
       return res.status(200).json({
         message: "Attendance update ho gayi",
@@ -53,15 +84,25 @@ router.post("/", async (req, res) => {
     }
 
 
-    // Agar attendance nahi hai to new record
+    // ===============================
+    // CREATE NEW
+    // ===============================
+
     const attendance = new Attendance({
       date: selectedDate,
       student,
       status,
     });
 
+
     const savedAttendance =
       await attendance.save();
+
+
+    // Student information populate
+    await savedAttendance.populate(
+      "student"
+    );
 
 
     res.status(201).json({
@@ -71,6 +112,12 @@ router.post("/", async (req, res) => {
 
 
   } catch (error) {
+
+    console.log(
+      "Attendance POST Error:",
+      error.message
+    );
+
 
     res.status(500).json({
       message: "Attendance save nahi ho payi",
@@ -88,11 +135,25 @@ router.get("/", async (req, res) => {
   try {
 
     const attendance = await Attendance.find()
-      .populate("student");
+      .populate(
+        "student",
+        "name rollNo email course semester photo"
+      )
+      .sort({
+        date: -1,
+      });
+
 
     res.status(200).json(attendance);
 
+
   } catch (error) {
+
+    console.log(
+      "Attendance GET Error:",
+      error.message
+    );
+
 
     res.status(500).json({
       message: "Attendance fetch nahi ho payi",
@@ -109,29 +170,72 @@ router.get("/", async (req, res) => {
 router.get("/date/:date", async (req, res) => {
   try {
 
-    const selectedDate = req.params.date;
-
-    const startDate = new Date(selectedDate);
-    startDate.setHours(0, 0, 0, 0);
-
-    const endDate = new Date(selectedDate);
-    endDate.setHours(23, 59, 59, 999);
+    const selectedDate =
+      req.params.date;
 
 
-    const attendance = await Attendance.find({
-      date: {
-        $gte: startDate,
-        $lte: endDate,
-      },
-    }).populate("student");
+    // ===============================
+    // Date Range
+    // ===============================
+
+    const startDate =
+      new Date(selectedDate);
+
+    startDate.setHours(
+      0,
+      0,
+      0,
+      0
+    );
 
 
-    res.status(200).json(attendance);
+    const endDate =
+      new Date(selectedDate);
+
+    endDate.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+
+    // ===============================
+    // Fetch Attendance
+    // ===============================
+
+    const attendance =
+      await Attendance.find({
+        date: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      })
+        .populate(
+          "student",
+          "name rollNo email course semester photo"
+        )
+        .sort({
+          date: -1,
+        });
+
+
+    res.status(200).json(
+      attendance
+    );
+
 
   } catch (error) {
 
+    console.log(
+      "Date Attendance Error:",
+      error.message
+    );
+
+
     res.status(500).json({
-      message: "Date-wise attendance fetch nahi ho payi",
+      message:
+        "Date-wise attendance fetch nahi ho payi",
       error: error.message,
     });
 
@@ -142,25 +246,48 @@ router.get("/date/:date", async (req, res) => {
 // ===============================
 // GET - Single Student Attendance
 // ===============================
-router.get("/student/:studentId", async (req, res) => {
-  try {
+router.get(
+  "/student/:studentId",
+  async (req, res) => {
 
-    const attendance = await Attendance.find({
-      student: req.params.studentId,
-    }).sort({ date: -1 });
+    try {
+
+      const attendance =
+        await Attendance.find({
+          student:
+            req.params.studentId,
+        })
+          .populate(
+            "student",
+            "name rollNo email course semester photo"
+          )
+          .sort({
+            date: -1,
+          });
 
 
-    res.status(200).json(attendance);
+      res.status(200).json(
+        attendance
+      );
 
-  } catch (error) {
 
-    res.status(500).json({
-      message: "Student attendance fetch nahi ho payi",
-      error: error.message,
-    });
+    } catch (error) {
 
+      console.log(
+        "Student Attendance Error:",
+        error.message
+      );
+
+
+      res.status(500).json({
+        message:
+          "Student attendance fetch nahi ho payi",
+        error: error.message,
+      });
+
+    }
   }
-});
+);
 
 
 module.exports = router;

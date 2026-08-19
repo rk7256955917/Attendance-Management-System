@@ -23,7 +23,7 @@ mongoose.connect(process.env.MONGO_URI)
   .catch((error) => {
     console.log("MongoDB connection error:", error);
   });
-
+ 
 // Student routes
 app.use("/api/students", studentRoutes);
 app.use("/api/attendance", attendanceRoutes);
