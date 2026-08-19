@@ -11,7 +11,7 @@ const Records = () => {
         );
 
         const data = await response.json();
-
+        
         setAttendance(data);
       } catch (error) {
         console.log("Records Error:", error.message);

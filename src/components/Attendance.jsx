@@ -5,7 +5,9 @@ const Attendance = ({ students }) => {
   // STUDENTS STATE
   // ===============================
 
-  const [attendanceStudents, setAttendanceStudents] = useState(students || []);
+  const [attendanceStudents, setAttendanceStudents] = useState(
+    students || []
+  );
 
   // ===============================
   // FILTER STATES
@@ -55,7 +57,7 @@ const Attendance = ({ students }) => {
         );
 
         const data = await response.json();
-
+       
         if (!response.ok) {
           throw new Error(
             data.message || "Students fetch nahi ho paye"
@@ -64,10 +66,7 @@ const Attendance = ({ students }) => {
 
         setAttendanceStudents(data);
       } catch (error) {
-        console.log(
-          "Latest Students Fetch Error:",
-          error.message
-        );
+        // Error handled silently
       }
     };
 
@@ -82,15 +81,11 @@ const Attendance = ({ students }) => {
     const searchText = search.toLowerCase().trim();
 
     const matchesSearch =
-      student.name
-        ?.toLowerCase()
-        .includes(searchText) ||
+      student.name?.toLowerCase().includes(searchText) ||
       String(student.rollNo)
         ?.toLowerCase()
         .includes(searchText) ||
-      student.email
-        ?.toLowerCase()
-        .includes(searchText);
+      student.email?.toLowerCase().includes(searchText);
 
     const matchesCourse =
       courseFilter === "All" ||
@@ -121,11 +116,10 @@ const Attendance = ({ students }) => {
   const endIndex =
     startIndex + studentsPerPage;
 
-  const paginatedStudents =
-    filteredStudents.slice(
-      startIndex,
-      endIndex
-    );
+  const paginatedStudents = filteredStudents.slice(
+    startIndex,
+    endIndex
+  );
 
   // ===============================
   // FILTER CHANGE -> PAGE 1
@@ -185,17 +179,11 @@ const Attendance = ({ students }) => {
               ? item.student._id
               : item.student;
 
-          attendanceMap[studentId] =
-            item.status;
+          attendanceMap[studentId] = item.status;
         });
 
         setAttendance(attendanceMap);
       } catch (error) {
-        console.log(
-          "Attendance Fetch Error:",
-          error.message
-        );
-
         setAttendance({});
       }
     };
@@ -207,14 +195,9 @@ const Attendance = ({ students }) => {
   // SELECT P / L / A
   // ===============================
 
-  const handleAttendance = (
-    studentId,
-    status
-  ) => {
+  const handleAttendance = (studentId, status) => {
     if (!selectedDate) {
-      alert(
-        "Pehle attendance date select karo"
-      );
+      alert("Pehle attendance date select karo");
       return;
     }
 
@@ -229,6 +212,7 @@ const Attendance = ({ students }) => {
   // ===============================
 
   const handleSubmit = async () => {
+      console.log("SUBMIT BUTTON CLICKED");
     if (!selectedDate) {
       alert("Pehle date select karo");
       return;
@@ -239,12 +223,9 @@ const Attendance = ({ students }) => {
       return;
     }
 
-    // Current filtered students ko check karo
-    const unmarkedStudents =
-      filteredStudents.filter(
-        (student) =>
-          !attendance[student._id]
-      );
+    const unmarkedStudents = filteredStudents.filter(
+      (student) => !attendance[student._id]
+    );
 
     if (unmarkedStudents.length > 0) {
       alert(
@@ -254,34 +235,40 @@ const Attendance = ({ students }) => {
     }
 
     try {
+        console.log("STARTING ATTENDANCE SUBMIT");
       setIsSubmitting(true);
 
       // ===============================
       // SAVE / UPDATE ATTENDANCE
       // ===============================
 
-      for (const student of filteredStudents) {
-        const response = await fetch(
-          "http://localhost:5000/api/attendance",
-          {
-            method: "POST",
+   for (const student of filteredStudents) {
 
-            headers: {
-              "Content-Type": "application/json",
-            },
+  console.log("SENDING ATTENDANCE:", {
+    date: selectedDate,
+    student: student._id,
+    status: attendance[student._id],
+  });
 
-            body: JSON.stringify({
-              date: selectedDate,
-              student: student._id,
-              status:
-                attendance[student._id],
-            }),
-          }
-        );
+  const response = await fetch(
+    "http://localhost:5000/api/attendance",
+    {
+      method: "POST",
 
-        const data =
-          await response.json();
+      headers: {
+        "Content-Type": "application/json",
+      },
 
+      body: JSON.stringify({
+        date: selectedDate,
+        student: student._id,
+        status: attendance[student._id],
+      }),
+    }
+  );
+
+        const data = await response.json();
+        console.log("POST ATTENDANCE RESPONSE:", data);
         if (!response.ok) {
           throw new Error(
             data.message ||
@@ -290,9 +277,7 @@ const Attendance = ({ students }) => {
         }
       }
 
-      alert(
-        "Attendance successfully submit ho gayi"
-      );
+      alert("Attendance successfully submit ho gayi");
 
       // ===============================
       // LATEST ATTENDANCE FETCH
@@ -302,8 +287,7 @@ const Attendance = ({ students }) => {
         `http://localhost:5000/api/attendance/date/${selectedDate}`
       );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (response.ok) {
         const attendanceMap = {};
@@ -314,18 +298,12 @@ const Attendance = ({ students }) => {
               ? item.student._id
               : item.student;
 
-          attendanceMap[studentId] =
-            item.status;
+          attendanceMap[studentId] = item.status;
         });
 
         setAttendance(attendanceMap);
       }
     } catch (error) {
-      console.log(
-        "Submit Attendance Error:",
-        error.message
-      );
-
       alert(error.message);
     } finally {
       setIsSubmitting(false);
@@ -351,9 +329,7 @@ const Attendance = ({ students }) => {
   return (
     <div className="bg-white rounded-xl p-3 md:p-5">
 
-      {/* ===============================
-          HEADING
-      =============================== */}
+      {/* HEADING */}
 
       <div className="mb-5">
         <h2 className="text-xl md:text-2xl font-bold text-slate-900">
@@ -361,9 +337,7 @@ const Attendance = ({ students }) => {
         </h2>
       </div>
 
-      {/* ===============================
-          SEARCH + FILTER
-      =============================== */}
+      {/* SEARCH + FILTER */}
 
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
 
@@ -384,9 +358,7 @@ const Attendance = ({ students }) => {
               type="text"
               placeholder="Name, Roll No. or Email"
               value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -400,30 +372,14 @@ const Attendance = ({ students }) => {
 
             <select
               value={courseFilter}
-              onChange={(e) =>
-                setCourseFilter(e.target.value)
-              }
+              onChange={(e) => setCourseFilter(e.target.value)}
               className="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none"
             >
-              <option value="All">
-                All Courses
-              </option>
-
-              <option value="B.Tech CSE">
-                B.Tech CSE
-              </option>
-
-              <option value="B.Tech IT">
-                B.Tech IT
-              </option>
-
-              <option value="BCA">
-                BCA
-              </option>
-
-              <option value="MCA">
-                MCA
-              </option>
+              <option value="All">All Courses</option>
+              <option value="B.Tech CSE">B.Tech CSE</option>
+              <option value="B.Tech IT">B.Tech IT</option>
+              <option value="BCA">BCA</option>
+              <option value="MCA">MCA</option>
             </select>
           </div>
 
@@ -436,46 +392,18 @@ const Attendance = ({ students }) => {
 
             <select
               value={semesterFilter}
-              onChange={(e) =>
-                setSemesterFilter(e.target.value)
-              }
+              onChange={(e) => setSemesterFilter(e.target.value)}
               className="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none"
             >
-              <option value="All">
-                All Semesters
-              </option>
-
-              <option value="1">
-                Semester 1
-              </option>
-
-              <option value="2">
-                Semester 2
-              </option>
-
-              <option value="3">
-                Semester 3
-              </option>
-
-              <option value="4">
-                Semester 4
-              </option>
-
-              <option value="5">
-                Semester 5
-              </option>
-
-              <option value="6">
-                Semester 6
-              </option>
-
-              <option value="7">
-                Semester 7
-              </option>
-
-              <option value="8">
-                Semester 8
-              </option>
+              <option value="All">All Semesters</option>
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5</option>
+              <option value="6">Semester 6</option>
+              <option value="7">Semester 7</option>
+              <option value="8">Semester 8</option>
             </select>
           </div>
 
@@ -490,9 +418,7 @@ const Attendance = ({ students }) => {
               type="date"
               value={selectedDate}
               onChange={(e) =>
-                setSelectedDate(
-                  e.target.value
-                )
+                setSelectedDate(e.target.value)
               }
               className="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -525,9 +451,7 @@ const Attendance = ({ students }) => {
         </div>
       </div>
 
-      {/* ===============================
-          DATE + SUBMIT
-      =============================== */}
+      {/* DATE + SUBMIT */}
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
 
@@ -545,13 +469,9 @@ const Attendance = ({ students }) => {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={
-            !selectedDate ||
-            isSubmitting
-          }
+          disabled={!selectedDate || isSubmitting}
           className={`px-5 py-2 rounded-lg text-white font-medium ${
-            !selectedDate ||
-            isSubmitting
+            !selectedDate || isSubmitting
               ? "bg-slate-300 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
@@ -562,9 +482,7 @@ const Attendance = ({ students }) => {
         </button>
       </div>
 
-      {/* ===============================
-          TABLE
-      =============================== */}
+      {/* TABLE */}
 
       <div className="overflow-x-auto">
 
@@ -573,25 +491,15 @@ const Attendance = ({ students }) => {
           <thead>
             <tr className="bg-slate-100 text-left">
 
-              <th className="p-3">
-                #
-              </th>
+              <th className="p-3">#</th>
 
-              <th className="p-3">
-                Student
-              </th>
+              <th className="p-3">Student</th>
 
-              <th className="p-3">
-                Roll Number
-              </th>
+              <th className="p-3">Roll Number</th>
 
-              <th className="p-3">
-                Course
-              </th>
+              <th className="p-3">Course</th>
 
-              <th className="p-3">
-                Semester
-              </th>
+              <th className="p-3">Semester</th>
 
               <th className="p-3 text-center">
                 Attendance
@@ -602,175 +510,159 @@ const Attendance = ({ students }) => {
 
           <tbody>
 
-            {paginatedStudents.map(
-              (student, index) => {
+            {paginatedStudents.map((student, index) => {
 
-                const status =
-                  attendance[
-                    student._id
-                  ];
+              const status = attendance[student._id];
 
-                return (
-                  <tr
-                    key={student._id}
-                    className="border-b"
-                  >
+              return (
+                <tr
+                  key={student._id}
+                  className="border-b"
+                >
 
-                    {/* NUMBER */}
+                  {/* NUMBER */}
 
-                    <td className="p-3">
-                      {startIndex +
-                        index +
-                        1}
-                    </td>
+                  <td className="p-3">
+                    {startIndex + index + 1}
+                  </td>
 
-                    {/* STUDENT */}
+                  {/* STUDENT */}
 
-                    <td className="p-3">
+                  <td className="p-3">
 
-                      <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
 
-                        <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden">
 
-                          {student.photo ? (
-                            <img
-                              src={`http://localhost:5000${student.photo}`}
-                              alt={
-                                student.name
-                              }
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                              Photo
-                            </div>
-                          )}
-
-                        </div>
-
-                        <span className="font-medium">
-                          {student.name}
-                        </span>
+                        {student.photo ? (
+                          <img
+                            src={`http://localhost:5000${student.photo}`}
+                            alt={student.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
+                            Photo
+                          </div>
+                        )}
 
                       </div>
 
-                    </td>
+                      <span className="font-medium">
+                        {student.name}
+                      </span>
 
-                    {/* ROLL NUMBER */}
+                    </div>
 
-                    <td className="p-3">
-                      {student.rollNo}
-                    </td>
+                  </td>
 
-                    {/* COURSE */}
+                  {/* ROLL NUMBER */}
 
-                    <td className="p-3">
-                      {student.course}
-                    </td>
+                  <td className="p-3">
+                    {student.rollNo}
+                  </td>
 
-                    {/* SEMESTER */}
+                  {/* COURSE */}
 
-                    <td className="p-3">
-                      {student.semester}
-                    </td>
+                  <td className="p-3">
+                    {student.course}
+                  </td>
 
-                    {/* ATTENDANCE */}
+                  {/* SEMESTER */}
 
-                    <td className="p-3">
+                  <td className="p-3">
+                    {student.semester}
+                  </td>
 
-                      <div className="flex justify-center gap-2">
+                  {/* ATTENDANCE */}
 
-                        {/* P */}
+                  <td className="p-3">
 
-                        <button
-                          type="button"
-                          disabled={
-                            !selectedDate
-                          }
-                          onClick={() =>
-                            handleAttendance(
-                              student._id,
-                              "P"
-                            )
-                          }
-                          className={`px-4 py-2 rounded-lg font-semibold border ${
-                            status === "P"
-                              ? "bg-green-600 text-white border-green-600"
-                              : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
-                          } ${
-                            !selectedDate
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
-                        >
-                          P
-                        </button>
+                    <div className="flex justify-center gap-2">
 
-                        {/* L */}
+                      {/* P */}
 
-                        <button
-                          type="button"
-                          disabled={
-                            !selectedDate
-                          }
-                          onClick={() =>
-                            handleAttendance(
-                              student._id,
-                              "L"
-                            )
-                          }
-                          className={`px-4 py-2 rounded-lg font-semibold border ${
-                            status === "L"
-                              ? "bg-orange-500 text-white border-orange-500"
-                              : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
-                          } ${
-                            !selectedDate
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
-                        >
-                          L
-                        </button>
+                      <button
+                        type="button"
+                        disabled={!selectedDate}
+                        onClick={() =>
+                          handleAttendance(
+                            student._id,
+                            "P"
+                          )
+                        }
+                        className={`px-4 py-2 rounded-lg font-semibold border ${
+                          status === "P"
+                            ? "bg-green-600 text-white border-green-600"
+                            : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
+                        } ${
+                          !selectedDate
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        P
+                      </button>
 
-                        {/* A */}
+                      {/* L */}
 
-                        <button
-                          type="button"
-                          disabled={
-                            !selectedDate
-                          }
-                          onClick={() =>
-                            handleAttendance(
-                              student._id,
-                              "A"
-                            )
-                          }
-                          className={`px-4 py-2 rounded-lg font-semibold border ${
-                            status === "A"
-                              ? "bg-red-600 text-white border-red-600"
-                              : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
-                          } ${
-                            !selectedDate
-                              ? "opacity-50 cursor-not-allowed"
-                              : ""
-                          }`}
-                        >
-                          A
-                        </button>
+                      <button
+                        type="button"
+                        disabled={!selectedDate}
+                        onClick={() =>
+                          handleAttendance(
+                            student._id,
+                            "L"
+                          )
+                        }
+                        className={`px-4 py-2 rounded-lg font-semibold border ${
+                          status === "L"
+                            ? "bg-orange-500 text-white border-orange-500"
+                            : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
+                        } ${
+                          !selectedDate
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        L
+                      </button>
 
-                      </div>
+                      {/* A */}
 
-                    </td>
+                      <button
+                        type="button"
+                        disabled={!selectedDate}
+                        onClick={() =>
+                          handleAttendance(
+                            student._id,
+                            "A"
+                          )
+                        }
+                        className={`px-4 py-2 rounded-lg font-semibold border ${
+                          status === "A"
+                            ? "bg-red-600 text-white border-red-600"
+                            : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"
+                        } ${
+                          !selectedDate
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        A
+                      </button>
 
-                  </tr>
-                );
-              }
-            )}
+                    </div>
+
+                  </td>
+
+                </tr>
+              );
+            })}
 
             {/* NO STUDENTS */}
 
-            {paginatedStudents.length ===
-              0 && (
+            {paginatedStudents.length === 0 && (
               <tr>
                 <td
                   colSpan="6"
@@ -785,9 +677,7 @@ const Attendance = ({ students }) => {
         </table>
       </div>
 
-      {/* ===============================
-          PAGINATION
-      =============================== */}
+      {/* PAGINATION */}
 
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-5">
@@ -809,14 +699,9 @@ const Attendance = ({ students }) => {
 
             <button
               type="button"
-              disabled={
-                currentPage === 1
-              }
+              disabled={currentPage === 1}
               onClick={() =>
-                setCurrentPage(
-                  (prev) =>
-                    prev - 1
-                )
+                setCurrentPage((prev) => prev - 1)
               }
               className={`px-4 py-2 rounded-lg border ${
                 currentPage === 1
@@ -834,21 +719,17 @@ const Attendance = ({ students }) => {
               {Array.from(
                 { length: totalPages },
                 (_, index) => {
-                  const page =
-                    index + 1;
+                  const page = index + 1;
 
                   return (
                     <button
                       key={page}
                       type="button"
                       onClick={() =>
-                        setCurrentPage(
-                          page
-                        )
+                        setCurrentPage(page)
                       }
                       className={`w-9 h-9 rounded-lg ${
-                        currentPage ===
-                        page
+                        currentPage === page
                           ? "bg-blue-600 text-white"
                           : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
                       }`}
@@ -865,19 +746,12 @@ const Attendance = ({ students }) => {
 
             <button
               type="button"
-              disabled={
-                currentPage ===
-                totalPages
-              }
+              disabled={currentPage === totalPages}
               onClick={() =>
-                setCurrentPage(
-                  (prev) =>
-                    prev + 1
-                )
+                setCurrentPage((prev) => prev + 1)
               }
               className={`px-4 py-2 rounded-lg border ${
-                currentPage ===
-                totalPages
+                currentPage === totalPages
                   ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                   : "bg-white text-slate-700 hover:bg-slate-50"
               }`}

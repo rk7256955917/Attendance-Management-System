@@ -71,6 +71,7 @@ router.post("/", async (req, res) => {
 
       const updatedAttendance =
         await existingAttendance.save();
+        console.log("ATTENDANCE UPDATED:", updatedAttendance); 
 
       // Student information populate
       await updatedAttendance.populate(
@@ -97,7 +98,7 @@ router.post("/", async (req, res) => {
 
     const savedAttendance =
       await attendance.save();
-
+console.log("NEW ATTENDANCE SAVED:", savedAttendance);
 
     // Student information populate
     await savedAttendance.populate(
