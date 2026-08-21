@@ -57,7 +57,13 @@ const Attendance = ({ students }) => {
         );
 
         const data = await response.json();
-       
+
+        console.log("STUDENTS FETCH RESPONSE:", {
+          responseOk: response.ok,
+          responseStatus: response.status,
+          responseData: data,
+        });
+
         if (!response.ok) {
           throw new Error(
             data.message || "Students fetch nahi ho paye"
@@ -66,7 +72,7 @@ const Attendance = ({ students }) => {
 
         setAttendanceStudents(data);
       } catch (error) {
-        // Error handled silently
+        console.error("STUDENTS FETCH ERROR:", error);
       }
     };
 
@@ -158,11 +164,22 @@ const Attendance = ({ students }) => {
 
     const fetchAttendance = async () => {
       try {
+        console.log(
+          "FETCHING ATTENDANCE FOR DATE:",
+          selectedDate
+        );
+
         const response = await fetch(
           `http://localhost:5000/api/attendance/date/${selectedDate}`
         );
 
         const data = await response.json();
+
+        console.log("DATE ATTENDANCE RESPONSE:", {
+          responseOk: response.ok,
+          responseStatus: response.status,
+          responseData: data,
+        });
 
         if (!response.ok) {
           throw new Error(
@@ -182,8 +199,18 @@ const Attendance = ({ students }) => {
           attendanceMap[studentId] = item.status;
         });
 
+        console.log(
+          "DATE ATTENDANCE MAP:",
+          attendanceMap
+        );
+
         setAttendance(attendanceMap);
       } catch (error) {
+        console.error(
+          "DATE ATTENDANCE FETCH ERROR:",
+          error
+        );
+
         setAttendance({});
       }
     };
@@ -201,6 +228,12 @@ const Attendance = ({ students }) => {
       return;
     }
 
+    console.log("ATTENDANCE SELECTED:", {
+      studentId,
+      status,
+      date: selectedDate,
+    });
+
     setAttendance((prev) => ({
       ...prev,
       [studentId]: status,
@@ -212,7 +245,13 @@ const Attendance = ({ students }) => {
   // ===============================
 
   const handleSubmit = async () => {
-      console.log("SUBMIT BUTTON CLICKED");
+    console.log("=================================");
+    console.log("SUBMIT BUTTON CLICKED");
+    console.log("Selected Date:", selectedDate);
+    console.log("Filtered Students:", filteredStudents);
+    console.log("Current Attendance:", attendance);
+    console.log("=================================");
+
     if (!selectedDate) {
       alert("Pehle date select karo");
       return;
@@ -223,52 +262,79 @@ const Attendance = ({ students }) => {
       return;
     }
 
+    // ===============================
+    // CHECK UNMARKED STUDENTS
+    // ===============================
+
     const unmarkedStudents = filteredStudents.filter(
       (student) => !attendance[student._id]
     );
 
     if (unmarkedStudents.length > 0) {
+      console.log(
+        "UNMARKED STUDENTS:",
+        unmarkedStudents.map((student) => ({
+          name: student.name,
+          id: student._id,
+        }))
+      );
+
       alert(
         `${unmarkedStudents.length} student ki attendance mark nahi hui hai`
       );
+
       return;
     }
 
     try {
-        console.log("STARTING ATTENDANCE SUBMIT");
+      console.log("STARTING ATTENDANCE SUBMIT");
+
       setIsSubmitting(true);
 
       // ===============================
       // SAVE / UPDATE ATTENDANCE
       // ===============================
 
-   for (const student of filteredStudents) {
+      for (const student of filteredStudents) {
+        const status = attendance[student._id];
 
-  console.log("SENDING ATTENDANCE:", {
-    date: selectedDate,
-    student: student._id,
-    status: attendance[student._id],
-  });
+        console.log("---------------------------------");
+        console.log("SENDING ATTENDANCE:", {
+          studentName: student.name,
+          studentId: student._id,
+          date: selectedDate,
+          status: status,
+        });
 
-  const response = await fetch(
-    "http://localhost:5000/api/attendance",
-    {
-      method: "POST",
+        const response = await fetch(
+          "http://localhost:5000/api/attendance",
+          {
+            method: "POST",
 
-      headers: {
-        "Content-Type": "application/json",
-      },
+            headers: {
+              "Content-Type": "application/json",
+            },
 
-      body: JSON.stringify({
-        date: selectedDate,
-        student: student._id,
-        status: attendance[student._id],
-      }),
-    }
-  );
+            body: JSON.stringify({
+              date: selectedDate,
+              student: student._id,
+              status: status,
+            }),
+          }
+        );
 
         const data = await response.json();
-        console.log("POST ATTENDANCE RESPONSE:", data);
+
+        console.log("POST ATTENDANCE RESPONSE:", {
+          studentName: student.name,
+          studentId: student._id,
+          date: selectedDate,
+          status: status,
+          responseOk: response.ok,
+          responseStatus: response.status,
+          responseData: data,
+        });
+
         if (!response.ok) {
           throw new Error(
             data.message ||
@@ -277,33 +343,72 @@ const Attendance = ({ students }) => {
         }
       }
 
+      console.log("=================================");
+      console.log(
+        "ALL ATTENDANCE POST REQUESTS SUCCESSFUL"
+      );
+      console.log("=================================");
+
       alert("Attendance successfully submit ho gayi");
 
       // ===============================
       // LATEST ATTENDANCE FETCH
       // ===============================
 
-      const response = await fetch(
+      console.log(
+        "FETCHING LATEST ATTENDANCE FOR DATE:",
+        selectedDate
+      );
+
+      const latestResponse = await fetch(
         `http://localhost:5000/api/attendance/date/${selectedDate}`
       );
 
-      const data = await response.json();
+      const latestData = await latestResponse.json();
 
-      if (response.ok) {
-        const attendanceMap = {};
+      console.log(
+        "LATEST ATTENDANCE GET RESPONSE:",
+        {
+          responseOk: latestResponse.ok,
+          responseStatus: latestResponse.status,
+          responseData: latestData,
+        }
+      );
 
-        data.forEach((item) => {
-          const studentId =
-            typeof item.student === "object"
-              ? item.student._id
-              : item.student;
-
-          attendanceMap[studentId] = item.status;
-        });
-
-        setAttendance(attendanceMap);
+      if (!latestResponse.ok) {
+        throw new Error(
+          latestData.message ||
+            "Latest attendance fetch nahi ho payi"
+        );
       }
+
+      const attendanceMap = {};
+
+      latestData.forEach((item) => {
+        const studentId =
+          typeof item.student === "object"
+            ? item.student._id
+            : item.student;
+
+        attendanceMap[studentId] = item.status;
+      });
+
+      console.log(
+        "FINAL ATTENDANCE MAP:",
+        attendanceMap
+      );
+
+      setAttendance(attendanceMap);
+
+      console.log("=================================");
+      console.log("ATTENDANCE SUBMIT COMPLETE");
+      console.log("=================================");
     } catch (error) {
+      console.error(
+        "ATTENDANCE SUBMIT ERROR:",
+        error
+      );
+
       alert(error.message);
     } finally {
       setIsSubmitting(false);
@@ -358,7 +463,9 @@ const Attendance = ({ students }) => {
               type="text"
               placeholder="Name, Roll No. or Email"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
               className="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -372,12 +479,18 @@ const Attendance = ({ students }) => {
 
             <select
               value={courseFilter}
-              onChange={(e) => setCourseFilter(e.target.value)}
+              onChange={(e) =>
+                setCourseFilter(e.target.value)
+              }
               className="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none"
             >
               <option value="All">All Courses</option>
-              <option value="B.Tech CSE">B.Tech CSE</option>
-              <option value="B.Tech IT">B.Tech IT</option>
+              <option value="B.Tech CSE">
+                B.Tech CSE
+              </option>
+              <option value="B.Tech IT">
+                B.Tech IT
+              </option>
               <option value="BCA">BCA</option>
               <option value="MCA">MCA</option>
             </select>
@@ -392,10 +505,14 @@ const Attendance = ({ students }) => {
 
             <select
               value={semesterFilter}
-              onChange={(e) => setSemesterFilter(e.target.value)}
+              onChange={(e) =>
+                setSemesterFilter(e.target.value)
+              }
               className="w-full border border-slate-200 rounded-lg px-3 py-2 outline-none"
             >
-              <option value="All">All Semesters</option>
+              <option value="All">
+                All Semesters
+              </option>
               <option value="1">Semester 1</option>
               <option value="2">Semester 2</option>
               <option value="3">Semester 3</option>
@@ -512,7 +629,8 @@ const Attendance = ({ students }) => {
 
             {paginatedStudents.map((student, index) => {
 
-              const status = attendance[student._id];
+              const status =
+                attendance[student._id];
 
               return (
                 <tr
@@ -701,7 +819,9 @@ const Attendance = ({ students }) => {
               type="button"
               disabled={currentPage === 1}
               onClick={() =>
-                setCurrentPage((prev) => prev - 1)
+                setCurrentPage(
+                  (prev) => prev - 1
+                )
               }
               className={`px-4 py-2 rounded-lg border ${
                 currentPage === 1
@@ -746,9 +866,13 @@ const Attendance = ({ students }) => {
 
             <button
               type="button"
-              disabled={currentPage === totalPages}
+              disabled={
+                currentPage === totalPages
+              }
               onClick={() =>
-                setCurrentPage((prev) => prev + 1)
+                setCurrentPage(
+                  (prev) => prev + 1
+                )
               }
               className={`px-4 py-2 rounded-lg border ${
                 currentPage === totalPages
