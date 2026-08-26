@@ -1,3 +1,4 @@
+import API_URL from "./api/api";
 const StudentForm = ({ onSubmit }) => {
 
   const handleSubmit = async (e) => {
@@ -34,7 +35,7 @@ const StudentForm = ({ onSubmit }) => {
     try {
 
       const response = await fetch(
-        "http://localhost:5000/api/students",
+        `${API_URL}/api/students`,
         {
           method: "POST",
           body: formData,

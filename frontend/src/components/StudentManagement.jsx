@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API_URL from "./api/api";
 
 const StudentManagement = ({ onProfileClick }) => {
   const [students, setStudents] = useState([]);
@@ -43,7 +44,7 @@ const StudentManagement = ({ onProfileClick }) => {
     const fetchStudents = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/students"
+          `${API_URL}/api/students`
         );
 
         const data = await response.json();
@@ -80,7 +81,7 @@ const StudentManagement = ({ onProfileClick }) => {
     const fetchAttendance = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/attendance/date/${selectedDate}`
+          `${API_URL}/api/attendance/date/${selectedDate}`
         );
 
         const data = await response.json();
@@ -169,7 +170,7 @@ const StudentManagement = ({ onProfileClick }) => {
 
       for (const student of filteredStudents) {
         const response = await fetch(
-          "http://localhost:5000/api/attendance",
+          `${API_URL}/api/attendance`,
           {
             method: "POST",
 
@@ -202,7 +203,7 @@ const StudentManagement = ({ onProfileClick }) => {
 
       // Latest attendance dobara fetch
       const response = await fetch(
-        `http://localhost:5000/api/attendance/date/${selectedDate}`
+        `${API_URL}/api/attendance/date/${selectedDate}`
       );
 
       const data = await response.json();
@@ -287,7 +288,7 @@ const StudentManagement = ({ onProfileClick }) => {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/students/${editingStudent._id}`,
+        `${API_URL}/api/students/${editingStudent._id}`,
         {
           method: "PUT",
           body: formData,
@@ -342,7 +343,7 @@ const StudentManagement = ({ onProfileClick }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/students/${id}`,
+        `${API_URL}/api/students/${id}`,
         {
           method: "DELETE",
         }
@@ -833,7 +834,7 @@ const StudentManagement = ({ onProfileClick }) => {
                     />
                   ) : editingStudent.photo ? (
                     <img
-                      src={`http://localhost:5000${editingStudent.photo}`}
+                      src={`${API_URL}${editingStudent.photo}`}
                       alt={
                         editingStudent.name
                       }
@@ -1032,7 +1033,7 @@ const StudentManagement = ({ onProfileClick }) => {
 
                             {student.photo ? (
                               <img
-                                src={`http://localhost:5000${student.photo}`}
+                                src={`${API_URL}${student.photo}`}
                                 alt={
                                   student.name
                                 }

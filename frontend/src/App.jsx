@@ -8,9 +8,9 @@ import Reports from "./components/Reports";
 import Records from "./components/Records";
 import StudentManagement from "./components/StudentManagement";
 import StudentProfile from "./components/StudentProfile";
+import API_URL from "./api/api";
 
 function App() {
-
   // Saare students yahan store honge
   const [students, setStudents] = useState([]);
 
@@ -20,18 +20,14 @@ function App() {
   // Kaunsa page show karna hai
   const [activePage, setActivePage] = useState("addStudent");
 
-
   // ===============================
   // GET - MongoDB se students fetch
   // ===============================
   useEffect(() => {
-
     const fetchStudents = async () => {
-
       try {
-
         const response = await fetch(
-          "http://localhost:5000/api/students"
+          `${API_URL}/api/students`
         );
 
         const data = await response.json();
@@ -43,63 +39,45 @@ function App() {
         }
 
         setStudents(data);
-
       } catch (error) {
-
         console.log(
           "Students fetch error:",
           error.message
         );
-
       }
-
     };
 
     fetchStudents();
-
   }, []);
-
 
   // ===============================
   // ADD STUDENT
   // ===============================
   const handleAddStudent = (student) => {
-
     setStudents((prevStudents) => [
       ...prevStudents,
-      student
+      student,
     ]);
-
   };
-
 
   // ===============================
   // STUDENT PROFILE
   // ===============================
   const handleProfileClick = (student) => {
-
     setSelectedStudent(student);
-
     setActivePage("studentProfile");
-
   };
-
 
   // ===============================
   // BACK TO STUDENT MANAGEMENT
   // ===============================
   const handleBackToStudents = () => {
-
     setSelectedStudent(null);
-
     setActivePage("students");
-
   };
-
 
   return (
     <div className="h-screen flex flex-col">
-
       <div className="flex flex-1 min-h-0">
 
         {/* ===============================
@@ -110,12 +88,10 @@ function App() {
           activePage={activePage}
         />
 
-
         {/* ===============================
             Main Content
         =============================== */}
         <main className="flex-1 p-4 overflow-auto">
-
 
           {/* ===============================
               Add Student
@@ -126,14 +102,12 @@ function App() {
             />
           )}
 
-
           {/* ===============================
               Dashboard
           =============================== */}
           {activePage === "dashboard" && (
             <Dashboard />
           )}
-
 
           {/* ===============================
               Student Management
@@ -144,7 +118,6 @@ function App() {
             />
           )}
 
-
           {/* ===============================
               Student Profile
           =============================== */}
@@ -154,9 +127,7 @@ function App() {
                 student={selectedStudent}
                 onBack={handleBackToStudents}
               />
-            )
-          }
-
+            )}
 
           {/* ===============================
               Attendance
@@ -167,7 +138,6 @@ function App() {
             />
           )}
 
-
           {/* ===============================
               Records
           =============================== */}
@@ -175,14 +145,12 @@ function App() {
             <Records />
           )}
 
-
           {/* ===============================
               Reports
           =============================== */}
           {activePage === "reports" && (
             <Reports />
           )}
-
 
           {/* ===============================
               Settings
@@ -194,9 +162,7 @@ function App() {
           )}
 
         </main>
-
       </div>
-
     </div>
   );
 }

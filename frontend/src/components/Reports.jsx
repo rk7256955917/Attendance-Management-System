@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API_URL from "./api/api";
 
 const Reports = () => {
   const [attendance, setAttendance] = useState([]);
@@ -9,7 +10,7 @@ const Reports = () => {
     const fetchAttendance = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/attendance"
+          `${API_URL}/api/students`
         );
 
         const data = await response.json();

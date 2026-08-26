@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API_URL from "./api/api";
 
 const Attendance = ({ students }) => {
 
@@ -254,7 +255,7 @@ const Attendance = ({ students }) => {
       for (const student of filteredStudents) {
 
         const response = await fetch(
-          "http://localhost:5000/api/attendance",
+           `${API_URL}/api/students`,
           {
             method: "POST",
 
@@ -297,7 +298,7 @@ const Attendance = ({ students }) => {
       // ===============================
 
       const response = await fetch(
-        `http://localhost:5000/api/attendance/date/${selectedDate}`
+        `${API_URL}/api/attendance/date/${selectedDate}`
       );
 
 
@@ -709,7 +710,7 @@ const Attendance = ({ students }) => {
                           {student.photo ? (
 
                             <img
-                              src={`http://localhost:5000${student.photo}`}
+                              src={`${API_URL}${student.photo}`}
                               alt={student.name}
                               className="w-full h-full object-cover"
                             />

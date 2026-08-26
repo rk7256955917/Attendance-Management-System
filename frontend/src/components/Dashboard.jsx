@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API_URL from "../api/api";
 
 const Dashboard = () => {
   const [students, setStudents] = useState([]);
@@ -9,14 +10,14 @@ const Dashboard = () => {
       try {
         // Students fetch
         const studentResponse = await fetch(
-          "http://localhost:5000/api/students"
+          `${API_URL}/api/students`
         );
 
         const studentData = await studentResponse.json();
 
         // Attendance fetch
         const attendanceResponse = await fetch(
-          "http://localhost:5000/api/attendance"
+          `${API_URL}/api/students`
         );
 
         const attendanceData = await attendanceResponse.json();

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import API_URL from "../api/api";
 
 const StudentProfile = ({ student, onBack }) => {
 
@@ -28,7 +29,7 @@ const StudentProfile = ({ student, onBack }) => {
         setLoading(true);
 
         const response = await fetch(
-          `http://localhost:5000/api/attendance/student/${student._id}`
+          `${API_URL}/api/attendance/student/${student._id}`
         );
 
         const data = await response.json();
@@ -298,7 +299,7 @@ const StudentProfile = ({ student, onBack }) => {
             {student.photo ? (
 
               <img
-                src={`http://localhost:5000${student.photo}`}
+                src={`${API_URL}${student.photo}`}
                 alt={student.name}
                 className="w-full h-full object-cover"
               />

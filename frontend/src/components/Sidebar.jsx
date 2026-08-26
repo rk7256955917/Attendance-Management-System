@@ -11,8 +11,7 @@ import {
 
 const Sidebar = ({ onNavigate, activePage }) => {
   return (
-    <aside className="w-57 h-full bg-slate-900 text-white p-4 ml-3 rounded-l-xl flex flex-col">
-
+    <aside className="w-57 min-h-full bg-slate-900 text-white p-4 ml-3 rounded-l-xl flex flex-col">
       {/* Logo */}
       <div className="mb-8 flex items-center gap-3">
 
