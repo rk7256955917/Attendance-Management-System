@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import API_URL from "./api/api";
+import API_URL from "../api/api";
 
 const StudentManagement = ({ onProfileClick }) => {
   const [students, setStudents] = useState([]);

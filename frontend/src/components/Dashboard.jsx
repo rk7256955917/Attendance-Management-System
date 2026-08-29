@@ -17,7 +17,7 @@ const Dashboard = () => {
 
         // Attendance fetch
         const attendanceResponse = await fetch(
-          `${API_URL}/api/students`
+          `${API_URL}/api/attendance`
         );
 
         const attendanceData = await attendanceResponse.json();
@@ -40,7 +40,7 @@ const Dashboard = () => {
 
   // Sirf aaj ki attendance
   const todayAttendance = attendance.filter((record) => {
-    return record.date.startsWith(today);
+    return record.date?.startsWith(today);
   });
 
 

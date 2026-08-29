@@ -1,4 +1,4 @@
-import API_URL from "./api/api";
+import API_URL from "../api/api";
 const StudentForm = ({ onSubmit }) => {
 
   const handleSubmit = async (e) => {
